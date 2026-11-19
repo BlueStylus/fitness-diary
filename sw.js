@@ -1,5 +1,5 @@
 /* Fit Diary service worker: lets the app open offline and picks up updates when online. */
-const CACHE = 'fit-diary-v1';
+const CACHE = 'fit-diary-v2';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'];
 
 self.addEventListener('install', e => {
@@ -12,7 +12,8 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.hostname === 'api.github.com') return; // never cache your data
+  // Never cache your data or sign-in.
+  if (url.hostname === 'api.github.com' || url.hostname === 'health.googleapis.com' || url.hostname === 'oauth2.googleapis.com' || url.hostname.endsWith('accounts.google.com')) return;
   // The app page: try the network first so updates show up, fall back to the saved copy offline.
   if (req.mode === 'navigate' || (url.origin === location.origin && url.pathname.endsWith('/index.html'))) {
     e.respondWith(fetch(req).then(res => { const copy = res.clone(); caches.open(CACHE).then(c => c.put('index.html', copy)); return res; })
